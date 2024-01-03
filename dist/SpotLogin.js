@@ -16,6 +16,7 @@ const express_1 = __importDefault(require("express"));
 const axios_1 = __importDefault(require("axios"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const cors_1 = __importDefault(require("cors"));
+const Playlist_1 = require("./classes/Playlist");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = 3000; // or your desired port
@@ -49,19 +50,18 @@ function getUserPlaylists() {
                     Authorization: `Bearer ${accessToken}`, // Include the access token in the request header
                 },
             };
-            const response = yield axios_1.default.get('https://api.spotify.com/v1/me/playlists', config);
+            const response = yield axios_1.default.get("https://api.spotify.com/v1/me/playlists", config);
             // Extract playlist data from the Spotify API response
-            const playlists = response.data.items; // Assuming the playlists are in the 'items' array
+            const playlists = response.data.items;
             // Respond with the retrieved playlists
-            return playlists;
+            return playlists.map((pl) => new Playlist_1.Playlist(pl.external_urls.spotify, pl.href, pl.id, pl.name, pl.owner.display_name, pl.tracks.href, pl.uri));
         }
         catch (error) {
-            console.error('Error fetching playlists:', error);
+            console.error("Error fetching playlists:", error);
             throw error;
         }
     });
 }
-// Route to initiate Spotify authentication
 app.get("/login", (req, res) => {
     res.header("Access-Control-Allow-Origin", "*");
     const clientId = process.env.CLIENT_ID;
@@ -74,13 +74,13 @@ app.get("/login", (req, res) => {
 app.get("/playlists", (_req, res) => {
     getUserPlaylists()
         .then((value) => {
+        console.log(value);
         res.status(200).json(value);
     })
         .catch((error) => {
         res.status(401);
     });
 });
-// Route to handle Spotify callback
 app.get("/callback", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { code } = req.query;
     const clientId = process.env.CLIENT_ID;

@@ -3,6 +3,7 @@ import axios, { AxiosRequestConfig } from "axios";
 import dotenv from "dotenv";
 import cors from "cors";
 import { UserProfile } from "./classes/Profile";
+import { Playlist, PlaylistImage, APIPlaylist } from "./classes/Playlist";
 
 dotenv.config();
 
@@ -11,7 +12,7 @@ const port = 3000; // or your desired port
 
 app.use(cors());
 
-let accessToken: string = ""
+let accessToken: string = "";
 
 const clientUrl = "http://localhost:5173";
 
@@ -32,7 +33,7 @@ async function getUserProfile() {
   }
 }
 
-async function getUserPlaylists() {
+async function getUserPlaylists(): Promise<Playlist[]> {
   try {
     // Make a GET request to Spotify API to retrieve user's playlists
     const config: AxiosRequestConfig = {
@@ -41,20 +42,32 @@ async function getUserPlaylists() {
       },
     };
 
-    const response = await axios.get('https://api.spotify.com/v1/me/playlists', config);
+    const response = await axios.get(
+      "https://api.spotify.com/v1/me/playlists",
+      config
+    );
 
     // Extract playlist data from the Spotify API response
-    const playlists = response.data.items; // Assuming the playlists are in the 'items' array
-
+    const playlists = response.data.items as APIPlaylist[];
     // Respond with the retrieved playlists
-    return playlists
+    return playlists.map(
+      (pl) =>
+        new Playlist(
+          pl.external_urls.spotify,
+          pl.href,
+          pl.id,
+          pl.name,
+          pl.owner.display_name,
+          pl.tracks.href,
+          pl.uri
+        )
+    );
   } catch (error) {
-    console.error('Error fetching playlists:', error);
+    console.error("Error fetching playlists:", error);
     throw error;
   }
 }
 
-// Route to initiate Spotify authentication
 app.get("/login", (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
   const clientId = process.env.CLIENT_ID;
@@ -70,14 +83,14 @@ app.get("/login", (req, res) => {
 app.get("/playlists", (_req, res) => {
   getUserPlaylists()
     .then((value) => {
-      res.status(200).json(value)
+      console.log(value);
+      res.status(200).json(value);
     })
     .catch((error) => {
-      res.status(401)
-    })
+      res.status(401);
+    });
 });
 
-// Route to handle Spotify callback
 app.get("/callback", async (req, res) => {
   const { code } = req.query;
   const clientId = process.env.CLIENT_ID;
