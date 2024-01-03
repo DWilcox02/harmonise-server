@@ -50,9 +50,24 @@ async function getUserPlaylists(): Promise<Playlist[]> {
     // Extract playlist data from the Spotify API response
     const playlists = response.data.items as APIPlaylist[];
     // Respond with the retrieved playlists
-    return playlists.map(
-      (pl) =>
-        new Playlist(
+    return playlists.map((pl) => {
+      try {
+        return new Playlist(
+          pl.external_urls.spotify,
+          pl.href,
+          pl.id,
+          pl.name,
+          pl.owner.display_name,
+          pl.tracks.href,
+          pl.uri,
+          new PlaylistImage(
+            pl.images[1].height,
+            pl.images[1].url,
+            pl.images[1].width
+          )
+        );
+      } catch (error) {
+        return new Playlist(
           pl.external_urls.spotify,
           pl.href,
           pl.id,
@@ -60,8 +75,9 @@ async function getUserPlaylists(): Promise<Playlist[]> {
           pl.owner.display_name,
           pl.tracks.href,
           pl.uri
-        )
-    );
+        );
+      }
+    });
   } catch (error) {
     console.error("Error fetching playlists:", error);
     throw error;
@@ -83,7 +99,6 @@ app.get("/login", (req, res) => {
 app.get("/playlists", (_req, res) => {
   getUserPlaylists()
     .then((value) => {
-      console.log(value);
       res.status(200).json(value);
     })
     .catch((error) => {
