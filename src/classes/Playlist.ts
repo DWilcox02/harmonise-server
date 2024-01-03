@@ -1,8 +1,9 @@
 class PlaylistImage {
   constructor(
-    public height: number, 
-    public url: string, 
-    public width: number) {}
+    public height: number,
+    public url: string,
+    public width: number
+  ) {}
 }
 
 class Playlist {

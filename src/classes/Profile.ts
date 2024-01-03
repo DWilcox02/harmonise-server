@@ -1,14 +1,17 @@
-type ProfileImage = {
-    url: string;
-    height: number;
-    width: number;
+class ProfileImage {
+  constructor(
+    public url: string,
+    public height: number,
+    public width: number
+  ) {}
 }
 
-type UserProfile = {
-    display_name: string;
-    id: string
-    images: ProfileImage[];
-
+class UserProfile {
+  constructor(
+    public display_name: string,
+    public id: string,
+    public images: ProfileImage[]
+  ) {}
 }
 
-export { ProfileImage, UserProfile }
+export { ProfileImage, UserProfile };
